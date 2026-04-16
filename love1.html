@@ -1,0 +1,343 @@
+
+<html >
+<head>
+<meta charset="UTF-8">
+<title>For Anushka 💖</title>
+
+<style>
+body{
+margin:0;
+font-family:Arial;
+text-align:center;
+color:white;
+overflow:hidden;
+background: linear-gradient(135deg,#0f0c29,#302b63,#24243e);
+}
+
+/* 🌌 stars */
+.star{
+position:absolute;
+width:2px;
+height:2px;
+background:white;
+opacity:0.7;
+}
+
+/* buttons */
+button{
+padding:10px 20px;
+margin:10px;
+border:none;
+border-radius:20px;
+cursor:pointer;
+}
+
+.option{
+display:block;
+background:white;
+color:black;
+margin:10px auto;
+width:220px;
+}
+
+.hidden{display:none;}
+
+/* GAME GRID */
+#grid{
+display:grid;
+grid-template-columns:repeat(4,80px);
+gap:10px;
+justify-content:center;
+margin-top:20px;
+}
+
+.card{
+width:80px;
+height:80px;
+background:#444;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:22px;
+border-radius:10px;
+cursor:pointer;
+}
+
+/* proposal buttons */
+.no{position:absolute;background:red;}
+.yes{background:green;}
+
+/* sky */
+#sky{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+}
+</style>
+</head>
+
+<body>
+
+<!-- 🌌 stars -->
+<div id="stars"></div>
+
+<!-- 🎶 music -->
+<audio id="music" loop>
+<source src="song.mp3">
+</audio>
+
+<button onclick="startMusic()">🎧 Start Music</button>
+
+<!-- 🔐 LOCK -->
+<div id="lock">
+<h2>Enter Secret Code 🔐</h2>
+<input id="code" placeholder="Enter code">
+<br>
+<button onclick="checkCode()">Unlock</button>
+<p id="hint"></p>
+</div>
+
+<!-- MAIN -->
+<div id="main" class="hidden">
+
+<h1>Hey JAANU ❤️</h1>
+
+<div id="riddleBox"></div>
+
+<!-- GAME -->
+<div id="game" class="hidden">
+<h2>Match the hearts 💘</h2>
+<div id="grid"></div>
+</div>
+
+<!-- PROPOSAL -->
+<div id="proposal" class="hidden">
+<h1>JAANU, Will You Be Mine?
+ ab toh tune bhot time le liye ab toh haa bol de jaanu💘</h1>
+<button class="yes" onclick="yes()">Yes 💕</button>
+<button class="no" onmouseover="move()">No 😏</button>
+</div>
+
+</div>
+
+<!-- FINAL -->
+<div id="final" class="hidden">
+<canvas id="sky"></canvas>
+</div>
+
+<script>
+
+/* 🌌 stars */
+for(let i=0;i<80;i++){
+let s=document.createElement("div");
+s.className="star";
+s.style.left=Math.random()*100+"vw";
+s.style.top=Math.random()*100+"vh";
+document.getElementById("stars").appendChild(s);
+}
+
+/* 🎶 music fade */
+function startMusic(){
+let m=document.getElementById("music");
+m.volume=0;
+m.play();
+
+let v=0;
+let f=setInterval(()=>{
+if(v<1){
+v+=0.05;
+m.volume=v;
+}else clearInterval(f);
+},200);
+}
+
+/* 🔐 code */
+function checkCode(){
+let c=document.getElementById("code").value.toLowerCase();
+if(c==="25"){
+document.getElementById("lock").style.display="none";
+document.getElementById("main").classList.remove("hidden");
+show();
+}else{
+document.getElementById("hint").innerText="Hint: birthdate";
+}
+}
+
+/* 🧠 riddles */
+let riddles=[
+{type:"mcq",q:"aisa kya hai jo mujhe pansd nhi tujhpe ❤️",o:["tera face","ignore karna","teri baate"],c:"ignore karna",hint:"jo roj hota hai  💘"},
+{type:"input",q:"meri height kitni hai?",c:"5,10",hint:"tujhe pataya hai ek number ke baad , ye lagna diyo jaise:4,11 😏"},
+{type:"mcq",q:"mera fav colour konsa hai 💞",o:["pink","black","tu"],c:"black",hint:"allways pink"},
+{type:"mcq",q:"if 3 pens cost 45, cost of 1 pen is 💖",o:["mujhe nhi pta","15","16","10"],c:"15",}
+];
+
+let i=0;
+
+function show(){
+let r=riddles[i];
+let html=`<h2>${r.q}</h2>`;
+
+if(r.type==="mcq"){
+r.o.forEach(o=>{
+html+=`<button class='option' onclick="check('${o.toLowerCase()}')">${o}</button>`;
+});
+}else{
+html+=`<input id='ans'><br><button onclick='checkInput()'>Submit</button>`;
+}
+
+html+=`<br><button onclick='hint()'>💡 Hint</button>`;
+html+=`<p id='hintBox'></p>`;
+
+document.getElementById("riddleBox").innerHTML=html;
+}
+
+function hint(){
+document.getElementById("hintBox").innerText=riddles[i].hint;
+}
+
+function check(a){
+if(a===riddles[i].c) next();
+else alert("Try again 😅");
+}
+
+function checkInput(){
+let v=document.getElementById("ans").value.toLowerCase();
+if(v===riddles[i].c) next();
+else alert("Wrong 😏");
+}
+
+function next(){
+i++;
+if(i<riddles.length) show();
+else{
+document.getElementById("riddleBox").style.display="none";
+document.getElementById("game").classList.remove("hidden");
+startGame();
+}
+}
+
+/* 🎴 MEMORY GAME */
+let symbols=["❤️","💖","💘","💕","😍","🥰","😘","ANUSHKA ❤️"];
+let cards=[...symbols,...symbols];
+
+let first=null;
+let second=null;
+let lock=false;
+let matched=0;
+
+function startGame(){
+
+cards.sort(()=>0.5-Math.random());
+
+let grid=document.getElementById("grid");
+grid.innerHTML="";
+
+cards.forEach((s,i)=>{
+let c=document.createElement("div");
+c.className="card";
+c.dataset.value=s;
+
+c.onclick=()=>flip(c);
+
+grid.appendChild(c);
+});
+
+}
+
+function flip(card){
+
+if(lock || card.innerHTML) return;
+
+card.innerHTML=card.dataset.value;
+
+if(!first){
+first=card;
+return;
+}
+
+second=card;
+lock=true;
+
+if(first.dataset.value===second.dataset.value){
+matched++;
+first=null;
+second=null;
+lock=false;
+
+if(matched===cards.length/2){
+setTimeout(()=>{
+document.getElementById("game").classList.add("hidden");
+document.getElementById("proposal").classList.remove("hidden");
+},800);
+}
+
+}else{
+setTimeout(()=>{
+first.innerHTML="";
+second.innerHTML="";
+first=null;
+second=null;
+lock=false;
+},800);
+}
+}
+
+/* 😏 move NO */
+function move(){
+let b=document.querySelector(".no");
+b.style.left=Math.random()*window.innerWidth+"px";
+b.style.top=Math.random()*window.innerHeight+"px";
+}
+
+/* 💘 YES */
+function yes(){
+
+document.getElementById("proposal").style.display="none";
+document.getElementById("final").classList.remove("hidden");
+
+let c=document.getElementById("sky");
+let ctx=c.getContext("2d");
+
+c.width=window.innerWidth;
+c.height=window.innerHeight;
+
+ctx.font="bold 70px Arial";
+ctx.fillStyle="white";
+ctx.fillText("ANUSHKA ❤️",70,c.height/2);
+
+let data=ctx.getImageData(0,0,c.width,c.height);
+let p=[];
+
+for(let y=0;y<c.height;y+=6){
+for(let x=0;x<c.width;x+=6){
+let i=(y*c.width+x)*4;
+if(data.data[i+3]>128){
+p.push({x:Math.random()*c.width,y:Math.random()*c.height,tx:x,ty:y});
+}
+}
+}
+
+ctx.clearRect(0,0,c.width,c.height);
+
+function animate(){
+ctx.fillStyle="rgba(0,0,0,0.2)";
+ctx.fillRect(0,0,c.width,c.height);
+
+p.forEach(pt=>{
+pt.x+=(pt.tx-pt.x)*0.05;
+pt.y+=(pt.ty-pt.y)*0.05;
+ctx.fillStyle="pink";
+ctx.fillRect(pt.x,pt.y,2,2);
+});
+
+requestAnimationFrame(animate);
+}
+animate();
+}
+
+</script>
+
+</body>
+</html>
